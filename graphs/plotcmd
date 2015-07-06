@@ -1,0 +1,93 @@
+set term postscript eps enhanced color "Helvetica,30"
+set lmargin 4
+set bmargin 3
+set rmargin 7
+set tmargin 2
+set size 1.000000, 1.000000
+set xrange [ 0.000000 : 20.000000 ]
+set yrange [ -0.025000 : 1.025000 ]
+set style line 1 lt -1 lc rgb "red" lw 2
+set style line 2 lt -1 lc  rgb "#228B22" lw 2
+set output "rhomel.eps"
+set title "rhomel" noenhanced font "Times-Italic,45" tc rgb "#228B22"
+set xlabel "" font "Helvetica,37"
+set ylabel "Expr" font "Helvetica,37"
+set label "CC=0.820" at 1.000, 0.950 tc rgb "black"
+set label "SE=2.3" at 1.0, 0.8 tc rgb "black"
+set label "observed." at 10.0, 0.95 tc rgb "red"
+set label "model" at 10.0, 0.85 tc rgb "#228B22"
+set label "Dorsal" at 10.0, 0.75 tc rgb "blue"
+plot "rhomel_DI.tempdat" using 1:2 notitle with lines ls 1, "rhomel_DI.tempdat" using 1:3 notitle with lines ls 2, "rhomel_DI.tempdat" using 1:4 notitle with lines ls 3
+reset
+set term postscript eps enhanced color "Helvetica,30"
+set lmargin 4
+set bmargin 3
+set rmargin 7
+set tmargin 2
+set size 1.0, 1.0
+set xrange [ 0.0 : 20.0 ]
+set yrange [ -0.0 : 1.0 ]
+set style line 1 lt -1 lc rgb "red" lw 2
+set style line 2 lt -1 lc  rgb "#228B22" lw 2
+set output "vnvir.eps"
+set title "vnvir" noenhanced font "Times-Italic,45" tc rgb "#228B22"
+set xlabel "" font "Helvetica,37"
+set ylabel "" font "Helvetica,37"
+set label "CC=0.622" at 1.000, 0.950 tc rgb "black"
+set label "SE=2.2" at 1.0, 0.8 tc rgb "black"
+plot "vnvir_DI.tempdat" using 1:2 notitle with lines ls 1, "vnvir_DI.tempdat" using 1:3 notitle with lines ls 2, "vnvir_DI.tempdat" using 1:4 notitle with lines ls 3
+reset
+set term postscript eps enhanced color "Helvetica,30"
+set lmargin 4
+set bmargin 3
+set rmargin 7
+set tmargin 2
+set size 1.0, 1.0
+set xrange [ 0.0 : 20.0 ]
+set yrange [ -0.0 : 1.0 ]
+set style line 1 lt -1 lc rgb "red" lw 2
+set style line 2 lt -1 lc  rgb "#228B22" lw 2
+set output "6xdlPLZ.eps"
+set title "6xdlPLZ" noenhanced font "Times-Italic,45" tc rgb "#228B22"
+set xlabel "DV z axis" font "Helvetica,37"
+set ylabel "" font "Helvetica,37"
+set label "CC=0.941" at 1.000, 0.950 tc rgb "black"
+set label "SE=0.6" at 1.0, 0.8 tc rgb "black"
+plot "6xdlPLZ_DI.tempdat" using 1:2 notitle with lines ls 1, "6xdlPLZ_DI.tempdat" using 1:3 notitle with lines ls 2, "6xdlPLZ_DI.tempdat" using 1:4 notitle with lines ls 3
+reset
+set term postscript eps enhanced color "Helvetica,30"
+set lmargin 4
+set bmargin 3
+set rmargin 7
+set tmargin 2
+set size 1.0, 1.0
+set xrange [ 0.0 : 20.0 ]
+set yrange [ -0.0 : 1.0 ]
+set style line 1 lt -1 lc rgb "red" lw 2
+set style line 2 lt -1 lc  rgb "#228B22" lw 2
+set output "6xEtPLZ.eps"
+set title "6xEtPLZ" noenhanced font "Times-Italic,45" tc rgb "#228B22"
+set xlabel "DV z axis" font "Helvetica,37"
+set ylabel "Expr" font "Helvetica,37"
+set label "CC=0.688" at 1.000, 0.950 tc rgb "black"
+set label "SE=0.7" at 1.0, 0.8 tc rgb "black"
+plot "6xEtPLZ_DI.tempdat" using 1:2 notitle with lines ls 1, "6xEtPLZ_DI.tempdat" using 1:3 notitle with lines ls 2, "6xEtPLZ_DI.tempdat" using 1:4 notitle with lines ls 3
+reset
+set term postscript eps enhanced color "Helvetica,30"
+set lmargin 4
+set bmargin 3
+set rmargin 7
+set tmargin 2
+set size 1.0, 1.0
+set xrange [ 0.0 : 20.0 ]
+set yrange [ -0.0 : 1.0 ]
+set style line 1 lt -1 lc rgb "red" lw 2
+set style line 2 lt -1 lc  rgb "#228B22" lw 2
+set output "rho2216t1t2s4a.eps"
+set title "rho2216t1t2s4a" noenhanced font "Times-Italic,45" tc rgb "#228B22"
+set xlabel "DV z axis" font "Helvetica,37"
+set ylabel "" font "Helvetica,37"
+set label "CC=0.702" at 1.000, 0.950 tc rgb "black"
+set label "SE=0.6" at 1.0, 0.8 tc rgb "black"
+plot "rho2216t1t2s4a_DI.tempdat" using 1:2 notitle with lines ls 1, "rho2216t1t2s4a_DI.tempdat" using 1:3 notitle with lines ls 2, "rho2216t1t2s4a_DI.tempdat" using 1:4 notitle with lines ls 3
+reset
