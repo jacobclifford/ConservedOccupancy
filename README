@@ -1,104 +1,26 @@
 06/15/2015
 
-The 'MIBBS' directory (Mutual Information Between Binding Sites) contains the full pipeline of programs (with needed input data) necessary for generation of results for Clifford/Adami paper: "Discovery and information-theoretic characterization of transcription factor binding sites that act cooperatively".  In addition the folder MIBBS contains a gzip 'sequenceData.tar.gz' that contains a directory 'Data' with our core sequence data ('CoreDorsalsites.fa') that has annotated the known Dorsal sites based on the primary author of the paper that discussed the binding site locus, and the pubmed id of the paper.
-
+ConservedOccupancy contains the C/C++ code necessary to generate the figures and results in my Dissertations last chapter.  In particular the Annotation of binding sites within CRMs (see printfile() function in ExprPredictor.cpp), and the gnu plots for the expression patterns (thanks M.Samee's plot.cpp code in Sinha's lab, run script.sh in graphs folder).  In addition the optimization code for MPA (Maximum Parsimony Annotator) and for Levenberg Marquadt (from gsl) and the code for the Jacobian and Hessian (two point finite difference) are within ExprPredictor.cpp.
 Author: Jacob Clifford <jacobc@msu.edu>
---------------------------------------------------------------------------
-MASTER SCRIPT
-
-The bash script 'masterscript.sh' is a procedural code that sequentially performs each experiment/simulation (a subprogram) using C/C++ programs and then generates a figure for the experimental results using matlab and lastly generates the weblogos for the binding sites used for the simulations.  Each subprogram is contained within its own directory.  Hence the beginning portion (first 27 lines in my editor) of 'masterscript.sh' assigns these directories to bash variables.  A 'do while' loop exist over different Twist motifs and spacer windows, once the Twist motif and spacer window are assigned (instantiation of the do while loop variables) the script then executes each experiment/simulation.  Once 'masterscript.sh' halts (presumably due to successful completion of simulations/experiments) the figures can be printed using the bash file 'script3.sh' that contains a latex program (plot.tex) to print all the figures as a pdf.  'plot.pdf' is the name of the printed figures, the code 'plot.cpp' is from M. Samee in Sinha's lab, which I manually edited the plot.cpp output (format916.tex) that contains the latex commands to 'includegraphics' in a table environment).    
 
 --------------------------------------------------------------------------
 INSTALLATION
 
-To run the masterscript.sh on a PC using linux you must change masterscript.sh's beginning portion that contains the bash variables of the directories to the correct path of the folder 'MIBBS' on your machine.  The C/C++ programs are an extension of Saurabh Sinha's lab's GEMSTAT (in particular Xin He's code), (with minor merges from the program STAP from S.Zhong's lab), both are programs for 'thermodynamic modeling'.  A number of dependency programs/libraries are needed, such as GNU Scientific Library, matlab, weblogo.  To run GEMSTAT see the installation instructions found in the tar.gz file at:
+The C/C++ programs are an extension of Saurabh Sinha's lab's GEMSTAT (in particular Xin He's code), (with minor merges from the program STAP from S.Zhong's lab, see: http://systemsbio.ucsd.edu/STAP/), both are programs for 'thermodynamic modeling'.  A number of dependency programs/libraries are needed, such as GNU Scientific Library, matlab.  To run GEMSTAT see the installation instructions found in the tar.gz file at:
 http://veda.cs.uiuc.edu/Seq2Expr/
 where Xin's README for GEMSTAT is pasted at the end of this README for convenience, where the explanation of the input files and parameters and classes of the C/C++ programs are explained.
 
 
 
-The folders in MIBBS that run my extension of GEMSTAT each have thier own copy of the extensions to the GEMSTAT files,  which basically means the cpp files have increased in size to account for new methods and attributes to the original classes (and of course the 'main' cpp file 'seq2exp.cpp' changes in each of my directories to perform the desired simulation), hence one does not need to actually download GEMSTAT from Sinha lab.  However, it is recommended that one first download and get GEMSTAT to work using Xin's example data files, before one tries to run my extensions/code.  This will assure that one has correctly created their MAKEFILE and linked properly to GSL.  
+One does not need to actually download GEMSTAT from Sinha lab, however, it is recommended that one first download and get GEMSTAT to work using Xin's example data files, before one tries to run my extensions/code.  This will assure that one has correctly created their MAKEFILE and linked properly to GSL.  
 
-Upon successful compilation of Xin's source files (which generates the executable seq2expr) one will notice by comparing Xin's Makefile with one of my Makefiles from one of my directories that the library 'SeqAnnotator.cpp' no longer exists, as I folded it into the library 'ExprPredictor.cpp' (and I call my executabl seq2exp not seq2expr).  Hence, once you have a working Makefile for Xin's code, you should see the necessary edits to get my Makefiles (which are all identical) working on your machine (which I suspect are only the GSL source locations on your machine, and possibly calling your version of gss or g++ (the C/C++ compiler). 
+Upon successful compilation of Xin's source files (which generates the executable seq2expr) one will notice by comparing Xin's Makefile with my Makefile that the library 'SeqAnnotator.cpp' no longer exists, as I folded it into the library 'ExprPredictor.cpp' (and I call my executabl seq2exp not seq2expr).  Hence, once you have a working Makefile for Xin's code, you should see the necessary edits to get my Makefile working on your machine (which I suspect are only the GSL source locations on your machine, and possibly calling your version of gss or g++ (the C/C++ compiler). 
 
-Each of my directories that contain an experiment and that call a 'seq2exp' executable has a terse README file to explain the input parameters not used in GEMSTAT.  For example, within masterscript.sh, the first experiment clusters Dorsal transcription factor DNA binding site loci, this simulation is run by executing 'seq2exp' within the folder 0315.  Here's what calling the executable looks like from the command line (and within the shell script):
+Here's what calling the executable looks like from the command line (and within the shell script):
 
-./seq2exp -bs fas.txt -bi topbot2Int.txt -s efastanotw12.txt  -p synmyout -e expre12.tab -m factordts.wtmx -f factorexpdts2.tab -na 0 -i factorinfodts.txt -o BINS -c coopdt.txt -fo out.txt -oo corr -dc  cbe.fa -du cbe.fa -tw Ebox.txt -sa NEEandREPseq.txt   -pva .0001 -cbo cb_11b.txt   -l 9 -nr 1000 -ip 1  -nu 5 -w 4 -m2 twmotifs842014.wtmx
+ ./seq2exp -bs fas.txt -bi topbot2Int.txt -s rhoseq2.txt -p synmyout6 -e rhoexp2.tab -m factordts.wtmx -f factorexpdts2.tab -na 1 -i factorinfodts.txt -o BINS -c coopdt.txt -fo out.txt -oo corr -nrand 5 -et 7 -dc coreOPT0dc1.txt -du coreOPT0du1.txt -sa NEE.txt -e2 NEEexp.tab
 
-A number of the parameters above are not defined in GEMSTAT or STAP, in this paragraph I will call these 'new parameters'.  For example, the -w  is a new parameter, which indicates the 'width' or the distance from the initial position of a binding site that the gibbs sampler for alignment is allowed to randomly sample new starting coordiantes within an extended sequence for binding site alignment.  For the most part, my new parameters always come after GEMSTAT's original parameters (which usually 'ended' at the -oo parameter, for example: "-dc   -du  -tw  -sa   -pva  -cbo   -l  -nr  -ip   -nu  -w  -m2 " are all new parameters - pattern match this list of new parameters with the call to the executable above to see what 'ended' means ).  Many of the original GEMSTAT/STAP parameters being passed to the execuatble are not necessary for the experiments in the Clifford/Adami paper, however, they are necessary to 'run' the simulation. (My program requires creating an ExprPredictor object (instantiation of the class ExprPredictor, which requires all the "thermodyanmic modeling" input.  This overhead is because our work was intended to be an extension to the current repository of gene expresssion model's 'cooperativity' functions (pairwise protein-protein interactions), which is still a work in progress).  Hence a segmentation fault will occur without the initial GEMSTAT parameters being assigned data.  Even though the old GEMSTAT parameters must be passed to our executable, one can still run our executable for clustering and characterizing cooperative binding sites with data for any system in particular data that is not correlated with the data passed through the old/original parameters (the gene expression data etc..).  Hence, to run the C/C++ programs for your data (fasta of binding sites, fasta of CRMs, and a potential motif that cooperates with the binding sites in the fasta), just use all of the data we have supplied for the old GEMSTAT parameters, while assigning my new parameters to your data.
-
-Now a list of the seven subprograms called within 'masterscript.sh'.
---------------------------------------------------------------------------
-C/C++ SUBPROGRAMS
-
-//////////////////////////////////
-The 'first subprogram'  (in extendseq_dir2 directory)
-//////////////////////////////////
-
-This program runs the clustering of known Dorsal loci based on a Twist motif and spacer window.  (see the bash variable 'extendseq_dir2' and how it is being used in masterscript.sh.)    A 'do while' loop is available to iterate over $j Twist motifs, and $i spacer windows.   Currently 'masterscript.sh' only analyzes the spacer window that corresponds to [0,30]bp, which is why the i, j loops only iterate once (notice that q=1, and k=2, meaning only one iteration occurs).
-
-Within the while loop, each DC, DU, CB data sets ( fasta files ) that corresponds to a specified Twist motif and spacer window ($i, $j variables) are copied to each directory that contains a subprogram.
-
-
-
-
-//////////////////////////////////
-The 'second subprogram' (in lopvaAlltwprojw directory) 
-//////////////////////////////////
-This program conducts the 'loggodds' test of the predicted DC and DU sites within the CRMs.
-
-
-
-
-//////////////////////////////////
-The 'third subprogram' (in rocenhancer directory) 
-//////////////////////////////////
-This program runs the ROC of CB and OR gate using CB sites as positives and the CRM background sequences as negatives.  This also generates the mutual information (I(I;O)) plot for the variables 'Input=I' (class type of k-mer Dorsal or not Dorsal site) and 'Output=O' (prediction of Dorsal or not Dorsal site).
-
-
-
-
-//////////////////////////////////
-The 'fourth subprogram' (in miclasses directory) 
-//////////////////////////////////
-This program computes the information quantity I(C;P), for class variable (C) (e.g. DC, DU) and predictions (P) (e.g. distal or proximal; which effectively means DU type site or DC type site) of class type for each detector DC and DU for a given energy cutoff.  In a sense, this program is designed to answer the question: can DC actually predict DC sites as positives, while also predicting DU sites as negatives?  See our paper for further details. 
-
-This program also constructs an ROC, not discussed in the original paper, that is helpful in analyzing the I(C;P) computation.  The ROC shows DC detector's ROC using DC training data as positives, and DU data as negatives, and similarly the DU detector's ROC using DU data as positives, and DC data as negatives. 
-
-
-
-
-//////////////////////////////////
-The 'fifth subprogram' (in ranksumproj directory) 
-//////////////////////////////////
-This program generates the data for the rank-sum pvalue sampling distribution in order to see if the median energies of DC and DU are significantly different.
-
-
-
-
-//////////////////////////////////
-sixth subprogram  (in data directory)
-//////////////////////////////////
-This program flips (chooses a strand ) all sites in an alignment to A-rich seq, and then makes a PWM-like table of the counts of each nucleotide from the alignment (see the colored tables in 'plot.pdf').
-
-
-
-
-//////////////////////////////////
-seventh subprogram  (in data2 directory)
-//////////////////////////////////
-This program is weblogo (designed by Crooks et.al. and T. Schneider), which creates the 'logo' of the motifs from the alignments of binding sites.  See their papers for details:
-
-Crooks GE, Hon G, Chandonia JM, Brenner SE WebLogo: A sequence logo generator,
-Genome Research, 14:1188-1190, (2004)
-
-Schneider TD, Stephens RM. 1990. Sequence Logos: A New Way to Display Consensus Sequences. Nucleic Acids Res. 18:6097-6100
-
-or visit: http://weblogo.berkeley.edu/ to download.  I have placed weblogo inside of this folder, but you will need to recompile, see WebLogo Source Code at http://weblogo.berkeley.edu/ for instructions.
-
-
-
-
+A number of the parameters above are not defined in GEMSTAT or STAP.
 --------------------------------------------------------------------------
 --------------------------------------------------------------------------
 --------------------------------------------------------------------------
