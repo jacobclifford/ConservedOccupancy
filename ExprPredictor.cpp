@@ -4913,8 +4913,9 @@ void ExprPredictor::printFile3b( ofstream& os, const ExprPar& par , ExprPredicto
 {
     os.setf( ios::fixed );
     os.precision( 3 ); 
+//os.width( 18 ); 
     
-    
+    // print binding weights
 os << " maxBindingWts : " << endl;
     if ( estBindingOption ) {
         for ( int i = 0; i < nFactors(); i++ ) {
@@ -4922,7 +4923,7 @@ os << " maxBindingWts : " << endl;
         }        
     }
 os << endl<<" txpEffects : "<< endl;
- 
+ // print the transcriptional effects
     for ( int i = 0; i < nFactors(); i++ ) {
        os << par.txpEffects[i] << "\t";
        
@@ -4932,12 +4933,12 @@ os << endl<<  " coopertivity : " << endl;
  for(int i =0; i < nFactors(); i++){
 	for(int j =0; j <= i; j++){
 		if ( coopMat(i,j)){
-			for(int k =0; k < par.theV[i][j].size(); k++) { 
+			for(int k =0; k < par.theV[i][j].size(); k++) { //  i don't think this should be k less then vij.size...
 		
 			os <<  "\t" << par.theV[i][j][k] ;
 			}
-		}	
-			
+		}	//<< "\t" << "coopBin" <<"\t" << k << "\t"<<"factor" << i << j <<endl;
+			//count = count + 1 ;//ouut << endl;
   		
 	}
 }
@@ -4946,7 +4947,7 @@ os<< endl << " quenching : " << endl;
 
 for(int i =0; i < nFactors(); i++){
 	for(int j =0; j <i; j++){
-		if(repIndicators[i])  {           
+		if(repIndicators[i])  { cout << endl;          // why is this cout here 9 13 11
 			for(int k =0; k < ExprPar::nbins ; k++){ 
 			os <<  "\t" << par.theVr[i][j][k] ;
 				
@@ -4960,42 +4961,54 @@ os << endl << "objective function : " << endl;
    
 ofstream fo( "format.tex",ios::app );
 int j=0;
+//cout << "cout seqSites.size " << seqSites.size() << endl;
 vector< Site > tsites;
 vector< Site > tsitesbot;
 
 
+/*
+mesoderm/neuroectoderm border (snail border)
+*/// remember the transition indices start at 0, while the spreadsheet labels the columns starting at 1.
+//////////////////////////////////////////
  double bottomofdborder = .5;
  double topofdborder = .8;
  int nrow = factorExprData.nRows();    
  int ncol =factorExprData.nCols();
-gsl_vector *transition_Indicesbs = gsl_vector_alloc(nrow);  
-gsl_vector *transition_Indicests = gsl_vector_alloc(nrow);  
+gsl_vector *transition_Indicesbs = gsl_vector_alloc(nrow);  // vector that hold the ti for each gene..
+gsl_vector *transition_Indicests = gsl_vector_alloc(nrow);  // vector that hold the ti for each gene..
 int tits;
 int tibs;
+///////////////////////////////////////////////////////////// this loop first finds top of border, based on max exression
+///////////////////////////////////////////////////////////// then the loop continues until expr passes the bottome border
 for (int i=0; i<nrow;i++) {
+//  int i = 2;  // get snail border
 	vector< double > reD;	
+//cout << " getrowi " << endl;				 
 	reD = factorExprData.getRow(i);	
-	
+	//cout << " number of rows " << nrow << endl;
 	int mi;				
 	gsl_vector *rowexprData = gsl_vector_alloc(ncol);
 	rowexprData = vector2gsl(reD);			 
 	mi = gsl_vector_max_index(rowexprData);  
-	
+	//cout << " for row " << i << " max index " << mi << endl;
 	double m;
-	m = gsl_vector_max(rowexprData);      
+	m = gsl_vector_max(rowexprData);      // the max function starts from the left and works its way to the right (starts with lowest indices) 
 	
 	double exptrace;
 	double exppeek;
+///////////////  set both indices to zero
+//cout << " about to hit exptrace mes " << endl;
 	tits = 0;
 	tibs =0;
-	if( m < bottomofdborder ) {                           
-		gsl_vector_set(transition_Indicests, i , tits);  
+	if( m < bottomofdborder ) {                           // this is a security check to make sure borders exist
+		gsl_vector_set(transition_Indicests, i , tits);  // here ti = NULL
 		gsl_vector_set(transition_Indicesbs, i , tibs);
-		
+		//continue;
 		break;
 	}
 	else{
 
+///////////////////////////////////////////// this is the main of the loop first setting the topborder
 	 
         for (int j=mi; j< ncol; j++)  {  
 		exptrace = gsl_vector_get(rowexprData,j);
@@ -5004,14 +5017,14 @@ for (int i=0; i<nrow;i++) {
 			continue;
 	        }
 		else {
-	        	if( exptrace == exppeek) { continue; }  
-			
+	        	if( exptrace == exppeek) { continue; }  // peek ahead to make sure trace is not on a saddle point (plateu)
+			// the failure of the above condition indicates the trace is diminishing in value, so push index just before the topofborder flag fails.
 			if(exppeek < topofdborder ) { 
 				        tits =j;
-					
+					//cout << " tit " << tits << endl; 
 					gsl_vector_set(transition_Indicests, i , tits); 
-					
-					
+					//if ( gsl_vector_get(rowexprData,tit) > bottomofdborder ) {  // this should automatically be true
+					//set the tib:
 					int counter=0;	
 					for(;;) {
 								exptrace = gsl_vector_get(rowexprData,tits+counter);
@@ -5022,40 +5035,47 @@ for (int i=0; i<nrow;i++) {
 								}
 								else {
 									tibs=tits + counter;
-									
+									//cout << "tib  " << tibs << endl;
 									gsl_vector_set(transition_Indicesbs, i , tibs);
 									break;	
-								}
-					} 
-						
+								}//else
+					} // for(;;)
+						//} // if bottomofdboder
 			int minindex;				
 			minindex = gsl_vector_min_index(rowexprData);  
 		     	if (tits == 0) { 
-				  tits = minindex;            
+				  tits = minindex;            //some sequences are all zero or all the same value, which causes segemtation fault
 				  tibs = minindex;
 				gsl_vector_set(transition_Indicests, i , tits); 
 				gsl_vector_set(transition_Indicesbs, i , tibs); 
 			} 	   
-		 	                   
+		 	                   // pushback the ti that is the transition index..  
 			break;
-			} 
-			
-			
-			
-		}
-	}
-}
+			} // if < topofdborder
+			// we push BEFORE the failure flag because we are training with assumption of dorsal occupancy, for sharp borders, we want expression ON as the index.
+			// this condition may set tit to 0 for traces that are all zero, hence the minindex condition below
+			////// the above condition sets the topindex, so we know need to set the bottom index, (note we have exhauted all the possible conditions on exptrace for the top
+		}//  else
+	}// for j
+}// else    
 
-}
+//cout << endl << endl;
+}//for i
+
+//cout << "transitionindicests " << gsl_vector_get(transition_Indicests,2) << endl; 
+//cout << "transitionindicesbs " << gsl_vector_get(transition_Indicesbs,2) << endl; 
 
 
 
+// for ( int i = 0; i < nSeqs(); i++ ) {  // given the neuroectoderm structures, we calculate (estimate?) the mesoderms structure.
 
+//		 vector< double > concsm = factorExprData.getCol( gsl_vector_get(transition_Indicests,2) );
+        	  // anny.annoty3( seqsy[ i], seqSitesm1[ i ], f, e, *func , 0, ExprPredictor::seqNmes[i],i, seqSites[i],seqSitesm1d1[i], ddd);
+	//  anny.annoty3( seqsy[ i], seqSitesm1[ i ], f, e, *func , 0, ExprPredictor::seqNmes[i],i, seqSites[i], seqSitesm1d1);
+          //d.push_back(seqSitesm1d1);
+//		    anny.annoty3( seqsy[ i], seqSitesm1[ i ], f, e, *func , gsl_vector_get(transition_Indicests,2), ExprPredictor::seqNmes[i],i, seqSites[i]);
 
-        	  
-	
-          
-
+////////////////////////////////////////
 ofstream hes( "hes.txt" );
 	vector< double > pars;
         par_model.getFreePars3( pars, coopMat, actIndicators, repIndicators ); 
@@ -5071,18 +5091,73 @@ ofstream hes( "hes.txt" );
 		}
 	}
        
-	
+	//Hassan start:
 	pars.clear();
 	pars = free_pars;
 	double step = .01;
 	bool a=1;
-	
+	//Hassan end
 ofstream occm("occmat.txt");
+cout << AllData.size() << endl;
+cout << "AllData[0].size()"<< AllData[0].size() << endl;
+cout << "AllData[1].size()"<< AllData[1].size() << endl;
+cout << "AllBorders.size() " << AllBorders.size() << endl;
+//cout << "Allb[1].size()"<< AllBorders[1].size() << endl;
+//cout << "Allb[1].size()"<< AllBorders<< endl;
 
+/*
+int fixedsize = fix_pars.size();  
+int rows = Occupancy -> size1;
+int columns = Occupancy -> size2;
+//int rows = Occw -> size1;
+//int columns = Occw -> size2;
+int i,j,k;
+k=0;
+gsl_matrix *X = gsl_matrix_alloc(columns,columns);
+gsl_matrix *V = gsl_matrix_alloc(columns,columns);
+gsl_vector *S =gsl_vector_alloc(columns);
+gsl_vector *xx =gsl_vector_alloc(columns);  // x is in the row space, therefore it is a vector in Rcolumns, with at most row dimensions.
+gsl_vector *b =gsl_vector_alloc(rows);     // b is in the column space of A.
+gsl_vector_set_all( b,0 );
+gsl_vector *work=gsl_vector_alloc(columns);
+int rsvd;		// A must have more rows than columns or the same num
+int rsvds;               //(A,V,S,work), on output A is replaced by U  (A=USVt)
+rsvd=gsl_linalg_SV_decomp(Occupancy,V,S,work);
+//rsvds=gsl_linalg_SV_solve(Occupancy,V,S,b,xx);
+//gsl_matrix_transpose(V);
+//printf ("x = \n");
+//gsl_vector_fprintf (stdout, xx, "%g");
 
+for(int j =0; j< fixedsize; j++) {
+	if(gsl_vector_get(S,j) == 0) {
+		 fix_pars.clear(); 
+		for(int i =0; i < fixedsize;i++){  // the number of fix_pars must be aligned with the seq2e main file..
+			fix_pars.push_back(gsl_matrix_get(V,j,i));
+		}
+		break;
+	
+	}
 
+}
 
-
+//fix_pars.clear();
+//for(int j =0; j< fixedsize; j++) {
+	if(gsl_vector_get(S,2) < .1 ) {
+	//	 fix_pars.clear(); 
+	//	for(int i =0; i < fixedsize;i++){  // the number of fix_pars must be aligned with the seq2e main file..
+			//fix_pars.push_back(gsl_matrix_get(V,2,j));  // this is causing some parameters to be out of range!!!
+			cout << "gsl_matrix_get(V,2,j)   = " << gsl_matrix_get(V,2,j)  << endl;
+			//par_model.txpEffects[j] = gsl_matrix_get(V,2,j);  // these parameters may be out of range and will fuck things up !!
+		}
+	//else break;
+	
+//}
+for(int i =0; i < columns;i++){  // the number of fix_pars must be aligned with the seq2e main file..
+			cout << "gsl_vector_get(S,i)  , singular values  = " << gsl_vector_get(S,i)  << endl;
+		}
+gsl_matrix_free( Occupancy );
+*/
+///////////////////////////////////////////////////////////////////////
 for(int m = 0; m < seqSites.size(); m++ ) {
 tsites = seqSites[m];
 tsitesbot = seqSitesbot[m]  ;
@@ -5090,6 +5165,7 @@ tsitesbot = seqSitesbot[m]  ;
 	
 
 
+/////////////////
  j=0;
 int jjj=10000;
 	for(int i = 0; i < ExprPredictor::seqsy[m].size(); i++ ) {
@@ -5099,7 +5175,7 @@ int jjj=10000;
 
 		for( int ii = 0; ii < seqSites[m].size(); ii++ ) {
 	
-		
+		//if (tsites.size() == 1 ) { break; }
 		
 			if ( i== seqSites[m][ii].start && seqSites[m][ii].factorIdx != 2) {
 				j=0;
@@ -5107,61 +5183,117 @@ int jjj=10000;
 		  if ( abs(i-jjj) < 6 ) {
 		  	while( j < 6 ) {if( i % 90 == 0 ) { fo << "\\\\&&"; }
 					fo << "\\color{green}"<< ALPHABET[ExprPredictor::seqsy[m][i]] <<"\\color{black}"; i++; j++;
-				}	
+				}	// i++; j++;}   
 					jjj=i; break;
 				
-			}
+			}//if abs
 		  else{
 				if( seqSites[m][ii].factorIdx == 0 ) { 
 
 					while( j < 9 ) {if( i % 90 == 0 ) { fo << "\\\\&&"; }
 					fo << "\\color{blue}"<< ALPHABET[ExprPredictor::seqsy[m][i]] <<"\\color{black}"; i++; j++;}   
 					jjj=i; break;
-				}
+				}//if tsitesii
 				if( seqSites[m][ii].factorIdx == 1 ) { 
 
 				while( j < 6 ) {if( i % 90 == 0 ) { fo << "\\\\&&"; }
 					fo << "\\color{green}"<<ALPHABET[ExprPredictor::seqsy[m][i]] <<"\\color{black}"; i++; j++; jjj=i;}   
 
 				break;
-				 }  
+				 }  // although j > tsites[i++], hence they'll appear right after one another.
 				if(seqSites[m][ii].factorIdx == 2 ) {
+/*
+				while( j < 6 ) {if( i % 90 == 0 ) { fo << "\\\\&&"; }
+					// fo << "\\color{red}"<<ALPHABET[ExprPredictor::seqsy[m][i]] <<"\\color{black}";  i++; j++; jjj=i;}
+					fo << "\\color{black}"<<ALPHABET[ExprPredictor::seqsy[m][i]] <<"\\color{black}";  i++; j++; jjj=i;}
+	  			break; 
+*/				}
 
-			}
-	
+			}// else abs()
+	// when i was a young boy my dad son when you grow you will be the saviour of the damned the black parade
+// sometimes i get the feeling that she's watching over me, we'll carry on, we'll carry on..			
 				
-			 }
-		}
+			 }// if
+		}// for ii
 		fo << ALPHABET[ExprPredictor::seqsy[m][i]] ;
 		if(i% 90 == 0 ) {fo << "\\\\&&"; }
 
-	}
+	}//for i
 
 
 j=0;
 fo << "\\\\&&\\\\";
 
 j=0;
+/*
+fo << ExprPredictor::seqNmes[m]<<"m1" << "&" << "cell "<< gsl_vector_get(transition_Indicests,2) << "&" ;
+	for( int i = 0; i < seqSitesm1[m].size() ; i++ ) {
+	
+	//	if (tsitesbot.size() == 1 ) { break; }
+		for (;;) {
+			if ( j < seqSitesm1[m][i].start ) { fo << "e"; j++; if( j % 90 == 0 ) { fo << "\\\\&&"; }}
+			
+			else {//cout << " j = " << j << endl;
+				if( j % 90 == 0 ) { fo << "\\\\&&"; }
+
+				if( seqSitesm1[m][i].factorIdx == 0 ) { fo << "\\color{blue}{d}\\color{black}"; j++;  break; }  // if two sites start at same position we shouldn't increment j
+				if( seqSitesm1[m][i].factorIdx == 1 ) { fo << "\\color{green}{t}\\color{black}"; j++ ; break; }  // although j > tsites[i++], hence they'll appear right after one another.
+				if( seqSitesm1[m][i].factorIdx == 2 ) { fo << "\\color{red}{s}\\color{black}"; j++ ; break; }
+				
+				
+			 }// else
+		}
+	}
+	while( j < ExprPredictor::seqsy[m].size() ) {if( j % 90 == 0 ) { fo << "\\\\&&"; }
+		fo << "e"; j++; 
+	}
+
+fo << "\\\\";
+*/
 j=0;
+/*
+fo << ExprPredictor::seqNmes[m]<< "m2" << "&" << "cell "<< gsl_vector_get(transition_Indicesbs,2)<< "&" ;
+	for( int i = 0; i < seqSitesm2[m].size() ; i++ ) {
+	
+	//	if (tsitesbot.size() == 1 ) { break; }
+		for (;;) {
+			if ( j < seqSitesm2[m][i].start ) { fo << "e"; j++; if( j % 90 == 0 ) { fo << "\\\\&&"; }}
+			
+			else {//cout << " j = " << j << endl;
+				if( j % 90 == 0 ) { fo << "\\\\&&"; }
+
+				if( seqSitesm2[m][i].factorIdx == 0 ) { fo << "\\color{blue}{d}\\color{black}"; j++;  break; }  // if two sites start at same position we shouldn't increment j
+				if( seqSitesm2[m][i].factorIdx == 1 ) { fo << "\\color{green}{t}\\color{black}"; j++ ; break; }  // although j > tsites[i++], hence they'll appear right after one another.
+				if( seqSitesm2[m][i].factorIdx == 2 ) { fo << "\\color{red}{s}\\color{black}"; j++ ; break; }
+				
+				
+			 }// else
+		}
+	}
+	while( j < ExprPredictor::seqsy[m].size() ) {if( j % 90 == 0 ) { fo << "\\\\&&"; }
+		fo << "e"; j++; 
+	}
+fo << "\\\\";
+*/
 
 
 j=0;
 fo << ExprPredictor::seqNmes[m] << "&" << "cell "<< gsl_vector_get(transition_Indicests,2) << "&" ;
 	for( int i = 0; i < seqSites[m].size() ; i++ ) {
 	
-	
+	//	if (tsitesbot.size() == 1 ) { break; }
 		for (;;) {
 			if ( j < seqSites[m][i].start ) { fo << "e"; j++; if( j % 90 == 0 ) { fo << "\\\\&&"; }}
 			
-			else {
+			else {//cout << " j = " << j << endl;
 				if( j % 90 == 0 ) { fo << "\\\\&&"; }
 
-				if( seqSites[m][i].factorIdx == 0 ) { fo << "\\color{blue}{d}\\color{black}"; j++;  break; }  
-				if( seqSites[m][i].factorIdx == 1 ) { fo << "\\color{green}{t}\\color{black}"; j++ ; break; }  
+				if( seqSites[m][i].factorIdx == 0 ) { fo << "\\color{blue}{d}\\color{black}"; j++;  break; }  // if two sites start at same position we shouldn't increment j
+				if( seqSites[m][i].factorIdx == 1 ) { fo << "\\color{green}{t}\\color{black}"; j++ ; break; }  // although j > tsites[i++], hence they'll appear right after one another.
 				if( seqSites[m][i].factorIdx == 2 ) { fo << "\\color{black}{e}\\color{black}"; j++ ; break; }
 				
 				
-			 }
+			 }// else
 		}
 	}
 	while( j < ExprPredictor::seqsy[m].size() ) {if( j % 90 == 0 ) { fo << "\\\\&&"; }
@@ -5174,12 +5306,13 @@ j=0;
 
 fo  << endl;
 
-}
+}// for m
 fo.close();
 
 
 }
 		
+
 
 
 void ExprPredictor::printFile5( ofstream& os, const ExprPar& par , ExprPredictor& jRMSE ) 

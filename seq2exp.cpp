@@ -14,6 +14,9 @@ int main( int argc, char* argv[] )
     int maxContact = 1;
 bool free_fix_indicators[] = {0,0,0,
 			    0,0,0,0,0,
+0,0,0,0,0,
+0,0,0,0,0,
+0,0,0 };
 		
 		
 	int nExps = 1;	
@@ -440,14 +443,169 @@ seqNames.clear();
   
 bool free_fix_indicators3[] = {1,0,0,
 			    1,0,0,0,0,
+	   
+	0,0,0,0,0,
+0,0,0,0,0,
+0,0,0 };
+vector <bool> indicator_bool3 ( free_fix_indicators3, free_fix_indicators3 + sizeof( free_fix_indicators3 )/sizeof( bool ));
+rval = readSequences(adamiFile, seqs, seqNames );
+    assert( rval != RET_ERROR );
+     nSeqs = seqs.size();
+cout << " ok inside predictor2" << endl;
+    // read the expression data
+  data.clear();
+  labels.clear(); 
+    rval = readMatrix( exprFile2, labels, condNames, data );
+    assert( rval != RET_ERROR );
+    assert( labels.size() == nSeqs );
+    for ( int i = 0; i < nSeqs; i++ ) assert( labels[i] == seqNames[i] );
+	   vector< vector< double > > data2;    // buffer for reading matrix data
+    vector< string > labels2; 
+	//~exprData;
+cout << " ok2 " << endl;
+	Matrix exprData2( data ); 
+cout << " ok3" << endl;
+   nConds = exprData2.nCols();
+    //////////////////////////////////////////////73011 (this needs to be checked for shallow copy complications.
+//ExprPredictor::exprData2 = exprData;
+//////////////////////////////////////////////////////////////
+  seqSites.clear();
+	vector< SiteVec > seqSitestes( nSeqs );
+    seqSites=seqSitestes;
+	    vector< int > seqLengthstes( nSeqs );
+ seqLengths.clear();
+	seqLengths=seqLengthstes;
+    //seqLengths( nSeqs );
+   // SeqAnnotator ann( motifs, energyThrs );
+    if ( annFile.empty() ) {        // construct site representation
+        for ( int i = 0; i < nSeqs; i++ ) {
+            ann.annot( seqs[ i ], seqSites[ i ] );
+            seqLengths[i] = seqs[i].size();
+        }
+    } else {    // read the site representation and compute the energy of sites
+        rval = readSites( annFile, factorIdxMap, seqSites, true );
+        assert( rval != RET_ERROR );
+        for ( int i = 0; i < nSeqs; i++ ) {
+            ann.compEnergy( seqs[i], seqSites[i] );
+            seqLengths[i] = seqs[i].size();
+        }
+    }
+cout << " passed annot " << endl;
+ //vector< SiteVec > seqSitesbot( nSeqs );
+seqSitesbot.clear(); //vector< SiteVec > seqSitesm1( nSeqs );
+seqSitesm1.clear(); 
+seqSitesm2.clear();
+seqSitesf2.clear();
+seqSitesbotf2.clear();
+seqSitesm1f2.clear();
+seqSitesm2f2.clear();
+seqSitesf3.clear();
+seqSitesbotf3.clear();
+seqSitesm1f3.clear();
+seqSitesm2f3.clear();
+seqSitesm1delete1.clear();
+
+seqSitesbot=seqSites;
+ //vector< SiteVec > seqSitesm1( nSeqs );
+seqSitesm1 = seqSites;
+ //vector< SiteVec > seqSitesm2( nSeqs );
+seqSitesm2 = seqSites;
+
+cout << " asd" <<endl;
+
+seqSitesf2 = seqSites;
+
+seqSitesbotf2 = seqSites;
+
+seqSitesm1f2 = seqSites; 
+
+seqSitesm2f2 = seqSites;
+
+
+seqSitesf3 = seqSites;
+
+seqSitesbotf3 = seqSites;
+
+seqSitesm1f3 = seqSites;
+
+seqSitesm2f3=seqSites;
+
+seqSitesm1delete1 = seqSites;
+
+
+
+
+
+
+ ExprPredictor* predictor2 = new ExprPredictor(seqSitesb, bindingData, seqSites, seqLengths, exprData2, motifs, factorExprData, intFunc, coopMat, actIndicators, maxContact, repIndicators, repressionMat, repressionDistThr, mmm, mmmr, indicator_bool3, anny, exprFile2, seqSitesbot, seqSitesm1,seqSitesm2, seqSitesf2 ,seqSitesbotf2, seqSitesm1f2 ,seqSitesm2f2, seqSitesf3, seqSitesbotf3,seqSitesm1f3, seqSitesm2f3 );  //520
+
+rval = readSequences( adamiFile, ExprPredictor::seqsy, ExprPredictor::seqNmes );
+/////////////////////////////////////////////////
+cout << " about to obj func " << endl;
+ 
+predictor2->objFuncborder(  par_init );
+cout << " about to train " << endl;
+predictor2->train( par_init, rng);
+
+predictor2->train4( predictor2->getPar() );
+cout << " about to print after train4 " << endl;
+
+ofstream to22("ot22.txt");
+//predictor->printFile4(to22,predictor2->getPar(),*predictor2);
+to22.close();
+ 
+//predictor->load( parFile2 );
+//*/
+//predictor->printPar(predictor->getPar());
+//ofstream fo("pars.txt");
+//predictor->printFilePar_KfoldCV(fo, predictor->getPar(),*predictor);
+//fo.close();
+//*/
+
+ofstream to("ot.txt");
+predictor->printFile3b(to,predictor2->getPar(),*predictor);
+to.close();
+
+
+ofstream fout( outFile.c_str() );
+    if ( !fout ) {
+        cerr << "Cannot open file " << outFile << endl;
+        exit( 1 );
+    }
+    fout << "Rows\t" << condNames << endl;
+    for ( int i = 0; i < nSeqs; i++ ) {
+      vector< double > observedExprs = exprData2.getRow( i );
+	vector< double > targetExprsm1;
+	vector< double > dorsalExprs = factorExprData.getRow( 2 );
+        predictor2->predict(seqSitesm1[ i ], seqLengths[i], targetExprsm1 );
+       
+	fout << seqNames[i] << '\t';
+        // print the results
+        fout << observedExprs << endl;      // observations
+   //     fout << seqNames[i];
+	fout << seqNames[i];
+        for ( int j = 0; j < nConds; j++ ) {
+	if(j==0){ fout << "\t" <<  targetExprsm1[j]+.0001; continue;} 
+	 fout << "\t" <<  targetExprsm1[j];       // predictions
+	}
+/*	fout << "dl";
+
+        for ( int j = 0; j < nConds; j++ ) {
+	fout << "\t" <<  factorExprData(1,j);    // factor dorsla
+	}
+*/
 	fout << endl;
 	fout << "Dl" << '\t';
-        
-        fout << dorsalExprs << endl;      
+        // print the results
+        fout << dorsalExprs << endl;      // observations
 	
 
 
 }
+
+
+
+
 
     return 0;	
 }
